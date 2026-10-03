@@ -196,6 +196,112 @@ function show_infobox() {
     <link rel="icon" type="image/png" href="favicon.png" sizes="16x16">
 
     <style>
+        :root {
+            color-scheme: dark;
+            --night: #07111f;
+            --panel: rgba(13, 29, 48, .82);
+            --gold: #ffd27a;
+            --cyan: #74e5f2;
+            --muted: #a8bbcc;
+        }
+        html, body { width: 100%; min-height: 100%; overflow: hidden; }
+        body {
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--night);
+            color: #f6f7fb;
+        }
+        #landing {
+            position: fixed;
+            inset: 0;
+            z-index: 1000001;
+            display: grid;
+            place-items: center;
+            overflow: auto;
+            padding: max(22px, env(safe-area-inset-top)) 20px max(22px, env(safe-area-inset-bottom));
+            box-sizing: border-box;
+            background:
+                radial-gradient(ellipse at 50% 34%, rgba(30, 103, 145, .28), transparent 42%),
+                radial-gradient(ellipse at 14% 90%, rgba(39, 75, 117, .24), transparent 42%),
+                linear-gradient(160deg, #081321 5%, #0b1d32 58%, #07111f 100%);
+            transition: opacity .35s ease, visibility .35s ease;
+        }
+        #landing::before, #landing::after {
+            content: "";
+            position: absolute;
+            pointer-events: none;
+            inset: 0;
+            opacity: .45;
+            background-image: radial-gradient(#d5efff 1px, transparent 1px);
+            background-size: 71px 71px;
+            mask-image: linear-gradient(transparent, #000 20%, #000 80%, transparent);
+        }
+        #landing::after { background-size: 113px 113px; opacity: .24; transform: translate(23px, 18px); }
+        #landing.is-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        .landing-card {
+            position: relative;
+            z-index: 1;
+            width: min(100%, 440px);
+            text-align: center;
+            animation: arrive .65s ease-out both;
+        }
+        @keyframes arrive { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        .brand-mark {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--cyan);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: .22em;
+            text-transform: uppercase;
+        }
+        .brand-mark::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 14px var(--cyan); }
+        .game-title { margin: 16px 0 0; font-size: clamp(40px, 12vw, 64px); line-height: .95; font-weight: 950; letter-spacing: -.055em; }
+        .game-title span { color: var(--gold); }
+        .game-subtitle { margin: 12px 0 24px; color: #c1d2df; font-size: 16px; letter-spacing: .28em; }
+        .ship-art {
+            width: 100%; height: 132px; margin: 0 auto 22px; position: relative;
+            display: grid; place-items: center; overflow: hidden;
+            border: 1px solid rgba(116, 229, 242, .15); border-radius: 22px;
+            background: linear-gradient(180deg, rgba(33, 88, 121, .22), rgba(9, 20, 34, .34));
+        }
+        .ship-art::before { content: ""; position: absolute; width: 2px; height: 180px; background: linear-gradient(transparent, rgba(116,229,242,.52), transparent); transform: rotate(30deg); left: 27%; top: -22px; }
+        .ship-art::after { content: ""; position: absolute; width: 2px; height: 160px; background: linear-gradient(transparent, rgba(255,210,122,.48), transparent); transform: rotate(30deg); right: 25%; top: 8px; }
+        .ship-icon { position: relative; z-index: 1; width: 78px; height: 78px; filter: drop-shadow(0 0 18px rgba(116,229,242,.7)); animation: hover-ship 2.3s ease-in-out infinite; }
+        @keyframes hover-ship { 50% { transform: translateY(-5px); } }
+        .orbit { position: absolute; width: 94px; height: 94px; border: 1px solid rgba(116,229,242,.22); border-radius: 50%; box-shadow: 0 0 38px rgba(50,174,209,.12); }
+        .loading-panel {
+            padding: 20px;
+            border: 1px solid rgba(174, 207, 228, .16);
+            border-radius: 18px;
+            background: var(--panel);
+            box-shadow: 0 18px 60px rgba(0,0,0,.25);
+            backdrop-filter: blur(14px);
+        }
+        .load-row { display: flex; justify-content: space-between; gap: 12px; align-items: center; color: #eaf3f8; font-size: 14px; text-align: left; }
+        #load-state { font-weight: 700; }
+        #load-detail { color: var(--muted); font-size: 12px; white-space: nowrap; }
+        .load-track { height: 6px; margin: 13px 0 17px; overflow: hidden; border-radius: 8px; background: rgba(219,235,246,.12); }
+        .load-track i { display: block; width: 34%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #4ec9e7, #ffe09a); box-shadow: 0 0 14px rgba(116,229,242,.45); animation: loading 1.4s ease-in-out infinite alternate; }
+        @keyframes loading { from { transform: translateX(-15%); } to { transform: translateX(210%); } }
+        #play-button {
+            width: 100%; min-height: 54px; border: 0; border-radius: 13px;
+            color: #17202a; background: linear-gradient(100deg, #ffe2a1, #ffc45e);
+            font: inherit; font-size: 16px; font-weight: 900; letter-spacing: .06em;
+            box-shadow: 0 7px 24px rgba(255,194,88,.2);
+            transition: transform .15s ease, filter .15s ease, opacity .15s ease;
+        }
+        #play-button:disabled { cursor: wait; filter: saturate(.45); opacity: .65; box-shadow: none; }
+        #play-button:not(:disabled):active { transform: scale(.985); }
+        #play-button:not(:disabled) { cursor: pointer; }
+        .play-hint { margin: 12px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+        .controls { display: flex; justify-content: center; gap: 18px; margin: 18px 0 0; color: #d2e0e9; font-size: 12px; }
+        .controls span { display: inline-flex; align-items: center; gap: 6px; }
+        .controls b { color: var(--cyan); font-size: 15px; }
+        #infobox { display: none !important; }
+        #transfer { display: none !important; }
         #status {
             display: inline-block;
             vertical-align: top;
@@ -240,13 +346,6 @@ function show_infobox() {
             bottom: 0;
             left: 0;
             right: 0;
-        }
-
-        body {
-            font-family: arial;
-            margin: 0;
-            padding: none;
-            background-color:powderblue;
         }
 
         .topright{
@@ -295,6 +394,42 @@ function show_infobox() {
 </head>
 
 <body>
+
+    <main id="landing" aria-label="Sky Strike 游戏入口">
+        <section class="landing-card">
+            <div class="brand-mark">Mobile arcade</div>
+            <h1 class="game-title">SKY <span>STRIKE</span></h1>
+            <p class="game-subtitle">雷 霆 战 机</p>
+            <div class="ship-art" aria-hidden="true">
+                <div class="orbit"></div>
+                <svg class="ship-icon" viewBox="0 0 96 96" role="img" aria-label="战机">
+                    <defs>
+                        <linearGradient id="shipFill" x1="0" x2="1" y1="0" y2="1">
+                            <stop offset="0" stop-color="#e8fbff" />
+                            <stop offset=".52" stop-color="#74e5f2" />
+                            <stop offset="1" stop-color="#4393dc" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M48 7 58 38 82 52 80 62 56 55 52 78 64 87 62 92 48 86 34 92 32 87 44 78 40 55 16 62 14 52 38 38Z" fill="url(#shipFill)" stroke="#e8fbff" stroke-width="1.5" stroke-linejoin="round" />
+                    <path d="m48 19 5 23h-10Z" fill="#fff2c8" />
+                    <path d="m42 78 6 13 6-13" fill="#ffb85b" opacity=".9" />
+                </svg>
+            </div>
+            <div class="loading-panel">
+                <div class="load-row">
+                    <span id="load-state">正在准备战机</span>
+                    <span id="load-detail">请稍候</span>
+                </div>
+                <div class="load-track" aria-hidden="true"><i></i></div>
+                <button id="play-button" type="button" disabled>正在加载游戏…</button>
+                <p id="play-hint" class="play-hint">首次打开需要准备游戏资源，加载完成后即可开始</p>
+            </div>
+            <div class="controls">
+                <span><b>↔</b> 按住并拖动移动</span>
+                <span><b>✦</b> 自动攻击</span>
+            </div>
+        </section>
+    </main>
 
     <div id="transfer" align=center>
 <!--        <div class="spinner" id='spinner'></div> -->
@@ -437,6 +572,64 @@ frameborder="1"
     function frame_online(url) {
         window.frames["iframe"].location = url;
     }
+
+    const landing = document.getElementById("landing");
+    const playButton = document.getElementById("play-button");
+    const loadState = document.getElementById("load-state");
+    const loadDetail = document.getElementById("load-detail");
+    const playHint = document.getElementById("play-hint");
+    const engineInfo = document.getElementById("infobox");
+    let gameReady = false;
+
+    function refreshLanding() {
+        const message = (engineInfo?.textContent || "").trim();
+        const lower = message.toLowerCase();
+        const progress = document.getElementById("progress");
+        const percent = progress && progress.max > 0 && progress.value > 0
+            ? Math.min(99, Math.round(progress.value / progress.max * 100))
+            : 0;
+
+        if (lower.includes("ready to start")) {
+            gameReady = true;
+            playButton.disabled = false;
+            playButton.textContent = "开始游戏";
+            loadState.textContent = "战机已就绪";
+            loadDetail.textContent = "准备开战";
+            playHint.textContent = "点击下方按钮进入游戏";
+        } else if (lower.startsWith("installing ")) {
+            loadState.textContent = "正在启动游戏";
+            loadDetail.textContent = "即将完成";
+        } else if (percent) {
+            loadState.textContent = "正在下载运行环境";
+            loadDetail.textContent = `${percent}%`;
+        } else if (message && !lower.includes("loading, please wait")) {
+            loadState.textContent = "正在准备游戏资源";
+            loadDetail.textContent = "请稍候";
+        }
+
+        if (engineInfo?.style.display === "none") {
+            landing.classList.add("is-hidden");
+        }
+    }
+
+    playButton.addEventListener("click", () => {
+        if (!gameReady) return;
+        playButton.disabled = true;
+        playButton.textContent = "正在进入…";
+        loadState.textContent = "正在启动战机";
+        loadDetail.textContent = "马上就好";
+        playHint.textContent = "游戏画面即将出现";
+    });
+
+    if (engineInfo) {
+        new MutationObserver(refreshLanding).observe(engineInfo, {
+            attributes: true,
+            childList: true,
+            characterData: true,
+            subtree: true
+        });
+    }
+    window.setInterval(refreshLanding, 350);
 
     </script>
 
