@@ -161,6 +161,12 @@ config = {
     fb_height : "720"
 }
 
+// Cache the large game archive on this device so later visits can start without downloading it again.
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw.js", { scope: "./" })
+        .catch((error) => console.warn("Offline game cache is unavailable", error));
+}
+
 function show_infobox() {
     infobox.style.display = "block";
 
